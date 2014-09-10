@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -A stf007int
+#PBS -N dataTransferTimings
+#PBS -j oe
+#PBS -l walltime=1:00:00
+#PBS -l nodes=1
+
+
+export TIMEFORMAT='%3R'
+
+cd $MEMBERWORK/stf007
+rm time.log
+touch time.log
+TIMEFILE="time.log"
+echo "HSI from Batch node:" >> $TIMEFILE
+{ time $(hsi put smallFile.dat 2> smallhsi.log) ; } >> $TIMEFILE 2>&1
+echo "HTAR from Batch node:" >> $TIMEFILE
+{ time htar -cvf small.tar smallFile.dat >> /dev/null ; } >> $TIMEFILE 2>&1
+cat time.log >> $HOME/dataTiming/time.log
