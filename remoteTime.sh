@@ -12,7 +12,7 @@ COUNTER=0
 INTCOUNTER=0
 cd $HOME/dataTiming
 export PATH=/sw/cave/tmux/1.7/centos5.8_gnu4.1.2/bin:/sw/cave/zsh/5.0.0/centos5.8_gnu4.1.2/bin:/usr/lib64/qt-3.3/bin:/usr/lib64/openmpi/bin:/sw/redhat6/lustredu/1.4/rhel6.5_gnu4.7.1/install/bin:/sw/home/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/public/bin
-echo "Running small file tests on DTN"
+echo "Running file tests on DTN"
 while [ $COUNTER -lt 3 ] ; do
   while [ $INTCOUNTER -lt 3 ] ; do
     echo "HSI ${files[$COUNTER]} on DTN"

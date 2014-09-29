@@ -14,8 +14,15 @@ INTCOUNTER=0
 rm -f *.log
 touch time.log
 
+hsi rm smallFile.dat 2> /dev/null
+hsi rm midFile.dat 2> /dev/null
+hsi rm biggerFile.dat 2> /dev/null
+
 echo "Running  tests:"
 while [ $COUNTER -lt 3 ] ; do
+  hsi rm smallFile.dat 2> /dev/null
+  hsi rm midFile.dat 2> /dev/null
+  hsi rm biggerFile.dat 2> /dev/null
   while [ $INTCOUNTER -lt 3 ] ; do
     echo "HSI ${files[$COUNTER]} on Titan Login Node"
     I=$( { time $(hsi put ${files[$COUNTER]} 2> /dev/null); } 2>&1 )
@@ -44,6 +51,9 @@ while [ $COUNTER -lt 3 ] ; do
   COUNTER=$(echo $COUNTER + 1 | bc)
 done
 
+hsi rm smallFile.dat 2> /dev/null
+hsi rm midFile.dat 2> /dev/null
+hsi rm biggerFile.dat 2> /dev/null
 
 echo "Logging into DTN: "
 ssh dtn "bash -s" << 'ENDSSH'
@@ -51,14 +61,13 @@ cd $HOME/dataTiming
 ./remoteTime.sh
 ENDSSH
 
+hsi rm smallFile.dat 2> /dev/null
+hsi rm midFile.dat 2> /dev/null
+hsi rm biggerFile.dat 2> /dev/null
+
 echo "Running small file batch tests from titan login node"
 JOBNUM=$(qsub -q dtn hpss.pbs)
 until [[ -f "dataTransferTimings.o$JOBNUM" ]] ;
   do
     sleep 2s
   done
-#Run Large file tests on DTN
-
-#Run Small file tests on dtn batch via qsub
-
-#Run Large file tests on dtn batch via qsub

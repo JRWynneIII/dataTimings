@@ -7,13 +7,49 @@
 
 
 export TIMEFORMAT='%3R'
+TIMEFILE="time.log"
+SMALLFILE="smallFile.dat"
+MEDFILE="midFile.dat"
+BIGFILE="biggerFile.dat"
+AVGHSI=0
+AVGHTAR=0
+I=0
+declare -a files=($SMALLFILE $MEDFILE $BIGFILE)
+COUNTER=0
+INTCOUNTER=0
 
 cd $MEMBERWORK/stf007
 rm time.log
 touch time.log
 TIMEFILE="time.log"
 echo "HSI from Batch node:" >> $TIMEFILE
-{ time $(hsi put smallFile.dat 2> smallhsi.log) ; } >> $TIMEFILE 2>&1
-echo "HTAR from Batch node:" >> $TIMEFILE
-{ time htar -cvf small.tar smallFile.dat >> /dev/null ; } >> $TIMEFILE 2>&1
-cat time.log >> $HOME/dataTiming/time.log
+while [ $COUNTER -lt 3 ] ; do
+  hsi rm smallFile.dat 2> /dev/null
+  hsi rm midFile.dat 2> /dev/null
+  hsi rm biggerFile.dat 2> /dev/null
+  while [ $INTCOUNTER -lt 3 ] ; do
+    I=$({ time $(hsi put ${files[$COUNTER]} 2> /dev/null) ; } >> $TIMEFILE 2>&1 )
+    AVGHSI=$(echo $AVGHSI + $I | bc)
+    echo "HTAR from Batch node:" >> $TIMEFILE
+    I=$({ time htar -cvf small.tar ${files[$COUNTER]} >> /dev/null ; } >> $TIMEFILE 2>&1)
+    AVGHTAR=$(echo $AVGHTAR + $I | bc)
+    cat time.log >> $HOME/dataTiming/time.log
+    INTCOUNTER=$(echo $INTCOUNTER + 1 |bc)
+  done
+
+  AVGHSI=$(echo $AVGHSI / 3 | bc -l)
+  AVGHTAR=$(echo $AVGHTAR / 3 |bc -l)
+  echo "Average HSI time for ${files[$COUNTER]} after 3 iterations:" >> $TIMEFILE
+  echo $AVGHSI >> $TIMEFILE
+  echo "Average HSI for ${files[$COUNTER]}"
+  echo $AVGHSI
+  echo "Average HTAR time for ${files[$COUNTER]} after 3 iterations:" >> $TIMEFILE
+  echo $AVGHTAR >> $TIMEFILE
+  echo "Average HTAR for ${files[$COUNTER]}"
+  echo $AVGHTAR
+  AVGHSI=0
+  AVGHTAR=0
+  INTCOUNTER=0
+  I=0
+  COUNTER=$(echo $COUNTER + 1 | bc)
+done
