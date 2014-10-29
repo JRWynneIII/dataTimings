@@ -10,7 +10,6 @@ MEDFILE="midFile.dat"
 BIGFILE="biggerfile.dat"
 AVGHSI=0
 AVGHTAR=0
-I=0
 declare -a files=($SMALLFILE $MEDFILE $BIGFILE)
 COUNTER=0
 INTCOUNTER=0
@@ -28,12 +27,21 @@ function clean {
 }
 
 
+function calcHSI {
+  I=$(hsi put ${files[$1]} 2>&1)
+  KBS=$(echo $I | grep -Po "(?<=bytes, ).*(?= KBS)")
+  BYTES=$(echo $I | grep -Po "(?<=/midFile.dat' \( ).*(?= bytes)")
+  KBYTES=$(echo $BYTES / 1000 | bc -l)
+  HSITIME=$(echo $KBYTES / echo $KBS | bc -l)
+  echo $HSITIME
+}
+
 echo "Running  tests:"
 while [ $COUNTER -lt 3 ] ; do
   while [ $INTCOUNTER -lt 3 ] ; do
     clean
     echo "HSI ${files[$COUNTER]} on Titan Login Node"
-    I=$( { time $(hsi put ${files[$COUNTER]} 2> /dev/null); } 2>&1 ) 
+    I=$(calcHSI $COUNTER)
     echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
     echo $I >> $TIMEFILE
     hsi rm ${files[$COUNTER]} 2> /dev/null
@@ -66,12 +74,11 @@ while [ $COUNTER -lt 3 ] ; do
 done
 clean
 echo "HSI of 1TB.dat on Titan Login Node"
-I=$( { time $(hsi put 1TB.dat 2> /dev/null); } 2>&1 )
+I=$(calcHSI 1.TB.dat)
 echo "Test 1 for 1TB.dat with HSI" >> $TIMEFILE
 echo $I >> $TIMEFILE
 echo $I
 I=$( htar -cvf file.tar 1TB.dat | grep -Po "(?<=time: ).*(?= seconds)" )
-I=$( { time $(htar -cVf file.tar 1TB.dat 2> /dev/null); } 2>&1 )
 echo "Test 1 for 1TB.dat with HTAR" >> $TIMEFILE
 echo $I >> $TIMEFILE
 echo $I
