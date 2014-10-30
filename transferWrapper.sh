@@ -37,8 +37,8 @@ function calcHSI {
 }
 
 echo "Running  tests:"
-while [ "$COUNTER" -lt 3 ] ; do
-  while [ "$INTCOUNTER" -lt 3 ] ; do
+for COUNTER in range(3); do
+  for INTCOUNTER in range(3); do
     clean
     echo "HSI ${files[$COUNTER]} on Titan Login Node"
     I=$(calcHSI $COUNTER)
@@ -53,7 +53,6 @@ while [ "$COUNTER" -lt 3 ] ; do
     echo "$I" >> "$TIMEFILE"
     AVGHTAR=$(echo "$AVGHTAR" + "$I" | bc)
     #Average the time for this cycle
-    INTCOUNTER=$(echo "$INTCOUNTER" + 1 | bc)
   done
   
   AVGHSI=$(echo "$AVGHSI" / 3 | bc -l)
@@ -70,7 +69,6 @@ while [ "$COUNTER" -lt 3 ] ; do
   AVGHTAR=0
   INTCOUNTER=0
   I=0
-  COUNTER=$(echo "$COUNTER" + 1 | bc)
 done
 clean
 echo "HSI of 1TB.dat on Titan Login Node"
