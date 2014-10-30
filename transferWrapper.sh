@@ -13,7 +13,7 @@ AVGHTAR=0
 declare -a files=($SMALLFILE $MEDFILE $BIGFILE)
 COUNTER=0
 INTCOUNTER=0
-rm -f *.log
+rm -f ./*.log
 touch time.log
 echo "$TIMEFILE"
 
