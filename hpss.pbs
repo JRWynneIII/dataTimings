@@ -2,19 +2,22 @@
 #PBS -A stf007int
 #PBS -N dataTransferTimings
 #PBS -j oe
-#PBS -l walltime=2:00:00
+#PBS -l walltime=6:00:00
 #PBS -l nodes=1
 
 
-export TIMEFORMAT='%3R'
+export TIMEFORMAT='%10R'
 TIMEFILE="time.log"
 SMALLFILE="smallFile.dat"
 MEDFILE="midFile.dat"
 BIGFILE="biggerfile.dat"
+HTARBIG="htardir"
+TBFILE="1TB.dat"
 AVGHSI=0
 AVGHTAR=0
 I=0
-declare -a files=($SMALLFILE $MEDFILE $BIGFILE)
+declare -a files=($SMALLFILE $MEDFILE $BIGFILE $TBFILE)
+declare -a htarfiles=($SMALLFILE $MEDFILE $HTARBIG $TBFILE)
 COUNTER=0
 INTCOUNTER=0
 
@@ -36,32 +39,32 @@ function clean {
 }
 
 echo "HSI from Batch node:" >> $TIMEFILE
-while [ $COUNTER -lt 3 ] ; do
-  while [ $INTCOUNTER -lt 3 ] ; do
+while [ $COUNTER -lt 10 ] ; do
+  while [ $INTCOUNTER -lt 10 ] ; do
     clean
     echo "HSI ${files[$COUNTER]} on Batch Node"
     I=$( { time $(hsi put ${files[$COUNTER]} 2> /dev/null); } 2>&1 )
     echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI on Batch Node" >> $TIMEFILE
-    echo $I >> $TIMEFILE
+    echo $I 
     hsi rm ${files[$COUNTER]} 2> /dev/null
     AVGHSI=$(echo $AVGHSI + $I | bc)
     clean
     echo "HTAR ${files[$COUNTER]} on Batch Node"
     I=$( { time htar -cvf file.tar ${files[$COUNTER]} >> /dev/null; } 2>&1 )
     echo "Test $INTCOUNTER for ${files[$COUNTER]} With HTAR on Batch Node" >> $TIMEFILE
-    echo $I >> $TIMEFILE
+    echo $I 
     AVGHTAR=$(echo $AVGHTAR + $I | bc)
     #Average the time for this cycle
     INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
   done
 
-  AVGHSI=$(echo $AVGHSI / 3 | bc -l)
-  AVGHTAR=$(echo $AVGHTAR / 3 |bc -l)
-  echo "Average HSI time for ${files[$COUNTER]} after 3 iterations on Batch Node:"
+  AVGHSI=$(echo $AVGHSI / 10 | bc -l)
+  AVGHTAR=$(echo $AVGHTAR / 10 |bc -l)
+  echo "Average HSI time for ${files[$COUNTER]} after 10 iterations on Batch Node:"
   echo $AVGHSI 
   echo "Average HSI for ${files[$COUNTER]}"
   echo $AVGHSI
-  echo "Average HTAR time for ${files[$COUNTER]} after 3 iterations on Batch Node:"
+  echo "Average HTAR time for ${files[$COUNTER]} after 10 iterations on Batch Node:"
   echo $AVGHTAR
   echo "Average HTAR for ${files[$COUNTER]}"
   echo $AVGHTAR
@@ -71,13 +74,11 @@ while [ $COUNTER -lt 3 ] ; do
   I=0
   COUNTER=$(expr $COUNTER + 1)
 done
-clean
-echo "HSI of 1TB.dat on Titan Login Node"
-I=$( { time $(hsi put 1TB.dat 2> /dev/null); } 2>&1 )
-echo "Test 1 for 1TB.dat with HSI" >> $TIMEFILE
-echo $I >> $TIMEFILE
-echo $I
-I=$( { time $(htar -cVf file.tar 1TB.dat 2> /dev/null); } 2>&1 )
-echo "Test 1 for 1TB.dat with HTAR" >> $TIMEFILE
-echo $I >> $TIMEFILE
-echo $I
+for COUNTER in {0..9}; do
+  echo "HSI test $COUNTER of 1TB.dat on Batch node"
+  I=$(calcHSI 3)
+  echo "Test $COUNTER for 1TB.dat with HSI" >> $TIMEFILE
+  echo $I >> $TIMEFILE
+  echo $I
+  clean
+done

@@ -1,27 +1,24 @@
 #!/bin/bash
+
 export TIMEFORMAT='%10R'
 DATE=$(date +%s)
+SUFFIX="login.log"
+TIMEFILE="time/$DATE$SUFFIX"
+touch $TIMEFILE
 SMALLFILE="smallFile.dat"
 MEDFILE="midFile.dat"
 BIGFILE="biggerfile.dat"
 HTARBIG="htardir"
-#SMALLFILE="/lustre/atlas/scratch/wyn/stf007/dataTiming/smallFile.dat"
-#MEDFILE="/lustre/atlas/scratch/wyn/stf007/dataTiming/midFile.dat"
-#BIGFILE="/lustre/atlas/scratch/wyn/stf007/dataTiming/biggerfile.dat"
-SUFFIX="dtn.log"
-TIMEFILE="/lustre/atlas/scratch/wyn/stf007/dataTiming/time/$DATE$SUFFIX"
-touch "$TIMEFILE"
+TBFILE="1TB.dat"
 AVGHSI=0
 AVGHTAR=0
-I=0
-#TBFILE="/lustre/atlas/scratch/wyn/stf007/dataTiming/1TB.dat"
-TBFILE="1TB.dat"
 declare -a files=($SMALLFILE $MEDFILE $BIGFILE $TBFILE)
 declare -a htarfiles=($SMALLFILE $MEDFILE $HTARBIG $TBFILE)
 COUNTER=0
 INTCOUNTER=0
-cd "$MEMBERWORK"/stf007/dataTiming
-export PATH=/sw/cave/tmux/1.7/centos5.8_gnu4.1.2/bin:/sw/cave/zsh/5.0.0/centos5.8_gnu4.1.2/bin:/usr/lib64/qt-10.3/bin:/usr/lib64/openmpi/bin:/sw/redhat6/lustredu/1.4/rhel6.5_gnu4.7.1/install/bin:/sw/home/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/public/bin
+rm -f *.log
+touch time.log
+echo $TIMEFILE
 
 function clean {
   hsi rm smallFile.dat 2> /dev/null
@@ -42,34 +39,35 @@ function calcHSI {
   echo $HSITIME
 }
 
-echo "Running file tests on DTN"
+echo "Running  tests:"
 while [ $COUNTER -lt 10 ] ; do
   while [ $INTCOUNTER -lt 10 ] ; do
     clean
-    echo "HSI ${files[$COUNTER]} on DTN"
+    echo "HSI ${files[$COUNTER]} on Titan Login Node"
     I=$(calcHSI $COUNTER)
-    echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI on DTN" >> $TIMEFILE
+    echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
     echo $I >> $TIMEFILE
+    hsi rm ${files[$COUNTER]} 2> /dev/null
     AVGHSI=$(echo $AVGHSI + $I | bc)
     clean
-    echo "HTAR ${htarfiles[$COUNTER]} on DTN"
-    I=$(htar -cvf file.tar ${htarfiles[$COUNTER]} | grep -Po "(?<=Transfer time:).*(?=seconds \()")
-    echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR on DTN" >> $TIMEFILE
+    echo "HTAR ${htarfiles[$COUNTER]} on Titan Login Node"
+    I=$( htar -cvf file.tar ${htarfiles[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds)" )
+    echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR" >> $TIMEFILE
     echo $I >> $TIMEFILE
     AVGHTAR=$(echo $AVGHTAR + $I | bc)
     #Average the time for this cycle
     INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
   done
-
+  
   AVGHSI=$(echo $AVGHSI / 10 | bc -l)
   AVGHTAR=$(echo $AVGHTAR / 10 |bc -l)
-  echo "Average HSI time from DTN for ${files[$COUNTER]} after 10 iterations:" >> $TIMEFILE
+  echo "Average HSI time for ${files[$COUNTER]} after 10 iterations:" >> $TIMEFILE
   echo $AVGHSI >> $TIMEFILE
-  echo "Average HSI for ${files[$COUNTER]} from DTN"
+  echo "Average HSI for ${files[$COUNTER]}"
   echo $AVGHSI
-  echo "Average HTAR time from DTN for ${htarfiles[$COUNTER]} after 10 iterations:" >> $TIMEFILE
+  echo "Average HTAR time for ${htarfiles[$COUNTER]} after 10 iterations:" >> $TIMEFILE
   echo $AVGHTAR >> $TIMEFILE
-  echo "Average HTAR for ${htarfiles[$COUNTER]} from DTN"
+  echo "Average HTAR for ${htarfiles[$COUNTER]}"
   echo $AVGHTAR
   AVGHSI=0
   AVGHTAR=0
@@ -84,4 +82,5 @@ for COUNTER in {0..9}; do
   echo "Test $COUNTER for 1TB.dat with HSI" >> $TIMEFILE
   echo $I >> $TIMEFILE
   echo $I
+  clean
 done
