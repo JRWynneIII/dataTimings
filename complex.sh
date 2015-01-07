@@ -37,38 +37,41 @@ function calcHSI {
   echo $HSITIME
 }
 
-cd makedir
-echo "Running  tests:"
-while [ $COUNTER -lt 3 ] ; do
-  cd ${files[$COUNTER]}
-  while [ $INTCOUNTER -lt 10 ] ; do
-    I=$(calcHSI "${files[$COUNTER]}$INTCOUNTER") 
-    echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
-    echo $I >> $TIMEFILE
-    echo $I
-    AVGHSI=$(echo $AVGHSI + $I | bc)
-    I=$( htar -cvf file.tar "${files[$COUNTER]}$INTCOUNTER" | grep -Po "(?<=time: ).*(?= seconds \()" )
-    echo "HTAR ${htarfiles[$COUNTER]} on Titan Login Node"
-    echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR" >> $TIMEFILE
-    echo $I >> $TIMEFILE
-    AVGHTAR=$(echo $AVGHTAR + $I | bc)
-    #Average the time for this cycle
-    INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
-    cd ..
+main() {
+  cd makedir
+  echo "Running  tests:"
+  while [ $COUNTER -lt 3 ] ; do
+    cd ${files[$COUNTER]}
+    while [ $INTCOUNTER -lt 10 ] ; do
+      I=$(calcHSI "${files[$COUNTER]}$INTCOUNTER") 
+      echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
+      echo $I >> $TIMEFILE
+      echo $I
+      AVGHSI=$(echo $AVGHSI + $I | bc)
+      I=$( htar -cvf file.tar "${files[$COUNTER]}$INTCOUNTER" | grep -Po "(?<=time: ).*(?= seconds \()" )
+      echo "HTAR ${htarfiles[$COUNTER]} on Titan Login Node"
+      echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR" >> $TIMEFILE
+      echo $I >> $TIMEFILE
+      AVGHTAR=$(echo $AVGHTAR + $I | bc)
+      #Average the time for this cycle
+      INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
+      cd ..
+    done
+    AVGHSI=$(echo $AVGHSI / 10 | bc -l)
+    AVGHTAR=$(echo $AVGHTAR / 10 |bc -l)
+    echo "Average HSI time for ${files[$COUNTER]} after 10 iterations:" >> $TIMEFILE
+    echo $AVGHSI >> $TIMEFILE
+    echo "Average HSI for ${files[$COUNTER]}"
+    echo $AVGHSI
+    echo "Average HTAR time for ${htarfiles[$COUNTER]} after 10 iterations:" >> $TIMEFILE
+    echo $AVGHTAR >> $TIMEFILE
+    echo "Average HTAR for ${htarfiles[$COUNTER]}"
+    echo $AVGHTAR
+    AVGHSI=0
+    AVGHTAR=0
+    INTCOUNTER=0
+    I=0
+    COUNTER=$(echo $COUNTER + 1 | bc)
   done
-  AVGHSI=$(echo $AVGHSI / 10 | bc -l)
-  AVGHTAR=$(echo $AVGHTAR / 10 |bc -l)
-  echo "Average HSI time for ${files[$COUNTER]} after 10 iterations:" >> $TIMEFILE
-  echo $AVGHSI >> $TIMEFILE
-  echo "Average HSI for ${files[$COUNTER]}"
-  echo $AVGHSI
-  echo "Average HTAR time for ${htarfiles[$COUNTER]} after 10 iterations:" >> $TIMEFILE
-  echo $AVGHTAR >> $TIMEFILE
-  echo "Average HTAR for ${htarfiles[$COUNTER]}"
-  echo $AVGHTAR
-  AVGHSI=0
-  AVGHTAR=0
-  INTCOUNTER=0
-  I=0
-  COUNTER=$(echo $COUNTER + 1 | bc)
-done
+}
+main
