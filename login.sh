@@ -1,5 +1,18 @@
 #!/bin/bash
 
+HELPTEXT="Usage: ./login.sh [COS names: xsmall small medium large xlarge xxlarge]" 
+HELPTEXT2="Ex: ./login.sh xsmall medium xlarge [Only runs tests for specified COSs]"
+HELPTEXT3="Ex: ./login.sh [Runs all 6 COSs]"
+HELPTEXT4="Ex: ./login.sh help [Displays this help message]"
+
+if [[ $1 =~ "help" ]] ; then
+  echo $HELPTEXT
+  echo $HELPTEXT2
+  echo $HELPTEXT3
+  echo $HELPTEXT4
+  exit
+fi
+
 export TIMEFORMAT='%10R'
 DATE=$(date +%s)
 SUFFIX="login.log"

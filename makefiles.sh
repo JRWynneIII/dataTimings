@@ -1,3 +1,4 @@
+#!/bin/bash
 HELPTEXT="Usage: ./makefiles.sh [size of individual files] [number of files]  [OPTIONAL: source. Defaults to /dev/zero] [OPTIONAL: name]
 Ex: ./makefiles.sh 10M 10"
 if [[ $1 =~ "help" ]] ; then
