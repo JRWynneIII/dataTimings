@@ -8,12 +8,13 @@ touch $TIMEFILE
 SMALLFILE="smallFile.dat"
 MEDFILE="midFile.dat"
 BIGFILE="biggerfile.dat"
-HTARBIG="htardir"
+HTARBIG="biggerfile.dat"
 TBFILE="1TB.dat"
 AVGHSI=0
 AVGHTAR=0
-declare -a files=($SMALLFILE $MEDFILE $BIGFILE $TBFILE)
-declare -a htarfiles=($SMALLFILE $MEDFILE $HTARBIG $TBFILE)
+
+declare -a files=("xsmall.dat" "smallFile.dat" "medcos.dat" "midFile.dat" "biggerfile.dat" "xxlarge.dat" )
+declare -a htarfiles=("htarbig/100K" "htarbig/1M" "htarbig/500M" "htarbig/1G" "htarbig/64G" "htarbig/5TB")
 COUNTER=0
 INTCOUNTER=0
 rm -f *.log
@@ -40,24 +41,44 @@ function calcHSI {
 }
 
 echo "Running  tests:"
-while [ $COUNTER -lt 10 ] ; do
-  while [ $INTCOUNTER -lt 10 ] ; do
-    clean
-    echo "HSI ${files[$COUNTER]} on Titan Login Node"
-    I=$(calcHSI $COUNTER)
-    echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
-    echo $I >> $TIMEFILE
-    hsi rm ${files[$COUNTER]} 2> /dev/null
-    AVGHSI=$(echo $AVGHSI + $I | bc)
-    clean
-    echo "HTAR ${htarfiles[$COUNTER]} on Titan Login Node"
-    I=$( htar -cvf file.tar ${htarfiles[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds \()" )
-    echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR" >> $TIMEFILE
-    echo $I >> $TIMEFILE
-    AVGHTAR=$(echo $AVGHTAR + $I | bc)
-    #Average the time for this cycle
-    INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
-  done
+while [ $COUNTER -lt 6 ] ; do
+  if [ $COUNTER -eq 5 ] ; then
+    while [ $INTCOUNTER -lt 3 ] ; do
+      clean
+      echo "HSI ${files[$COUNTER]} on Titan Login Node"
+      I=$(calcHSI $COUNTER)
+      echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
+      echo $I >> $TIMEFILE
+      hsi rm ${files[$COUNTER]} 2> /dev/null
+      AVGHSI=$(echo $AVGHSI + $I | bc)
+      clean
+      echo "HTAR ${htarfiles[$COUNTER]} on Titan Login Node"
+      I=$( htar -cvf file.tar ${htarfiles[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds \()" )
+      echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR" >> $TIMEFILE
+      echo $I >> $TIMEFILE
+      AVGHTAR=$(echo $AVGHTAR + $I | bc)
+      #Average the time for this cycle
+      INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
+    done
+  else
+    while [ $INTCOUNTER -lt 10 ] ; do
+      clean
+      echo "HSI ${files[$COUNTER]} on Titan Login Node"
+      I=$(calcHSI $COUNTER)
+      echo "Test $INTCOUNTER for ${files[$COUNTER]} With HSI" >> $TIMEFILE
+      echo $I >> $TIMEFILE
+      hsi rm ${files[$COUNTER]} 2> /dev/null
+      AVGHSI=$(echo $AVGHSI + $I | bc)
+      clean
+      echo "HTAR ${htarfiles[$COUNTER]} on Titan Login Node"
+      I=$( htar -cvf file.tar ${htarfiles[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds \()" )
+      echo "Test $INTCOUNTER for ${htarfiles[$COUNTER]} With HTAR" >> $TIMEFILE
+      echo $I >> $TIMEFILE
+      AVGHTAR=$(echo $AVGHTAR + $I | bc)
+      #Average the time for this cycle
+      INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
+    done
+  fi
   
   AVGHSI=$(echo $AVGHSI / 10 | bc -l)
   AVGHTAR=$(echo $AVGHTAR / 10 |bc -l)
@@ -74,13 +95,4 @@ while [ $COUNTER -lt 10 ] ; do
   INTCOUNTER=0
   I=0
   COUNTER=$(echo $COUNTER + 1 | bc)
-done
-clean
-for COUNTER in {0..9}; do
-  echo "HSI test $COUNTER of 1TB.dat on Titan Login Node"
-  I=$(calcHSI 3)
-  echo "Test $COUNTER for 1TB.dat with HSI" >> $TIMEFILE
-  echo $I >> $TIMEFILE
-  echo $I
-  clean
 done
