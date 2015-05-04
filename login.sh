@@ -14,8 +14,9 @@ XXLARGE="xxlarge"
 AVGHSI=0
 AVGHTAR=0
 
-declare -a files=($XSMALL $SMALL $MEDIUM $LARGE $XLARGE $XXLARGE)
-declare -a htarfiles=("htar/xsmall" "htar/small" "htar/medium" "htar/large" "htar/xlarge" "htar/xxlarge")
+files=($XSMALL $SMALL $MEDIUM $LARGE $XLARGE $XXLARGE)
+htarfiles=("htar/xsmall" "htar/small" "htar/medium" "htar/large" "htar/xlarge" "htar/xxlarge")
+
 COUNTER=0
 INTCOUNTER=0
 rm -f *.log
@@ -38,6 +39,8 @@ else
   HSI=( "$@" )
   HTAR=( "${@/#/htar/}" )
 fi
+
+echo ${#HTAR[@]}
 
 echo "Running  tests:"
 while [ $COUNTER -lt ${#HSI[@]} ] ; do
