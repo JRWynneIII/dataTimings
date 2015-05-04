@@ -14,8 +14,8 @@ XXLARGE="xxlarge"
 AVGHSI=0
 AVGHTAR=0
 
-files=($XSMALL $SMALL $MEDIUM $LARGE $XLARGE $XXLARGE)
-htarfiles=("htar/xsmall" "htar/small" "htar/medium" "htar/large" "htar/xlarge" "htar/xxlarge")
+declare -a files=($XSMALL $SMALL $MEDIUM $LARGE $XLARGE $XXLARGE)
+declare -a htarfiles=("htar/xsmall" "htar/small" "htar/medium" "htar/large" "htar/xlarge" "htar/xxlarge")
 
 COUNTER=0
 INTCOUNTER=0
@@ -33,8 +33,8 @@ function calcHSI {
 }
 
 if [ "$#" -eq 0 ]; then
-  HSI=$files
-  HTAR=$htarfiles
+  declare -a HSI=("${files[@]}")
+  declare -a HTAR=("${htarfiles[@]}")
 else
   HSI=( "$@" )
   HTAR=( "${@/#/htar/}" )
