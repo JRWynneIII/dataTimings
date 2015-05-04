@@ -32,66 +32,39 @@ function calcHSI {
 }
 
 if [ "$#" -eq 0 ]; then
-  INDIVIDUALHSI=$files
-  INDIVIDUALHTAR=$htarfiles
+  HSI=$files
+  HTAR=$htarfiles
 else
-  INDIVIDUALHSI==( "$@" )
-  INDIVIDUALHTAR==( "$@" )
-  cnt=${#INDIVIDUALHTAR[@]}
-  for ((i=0;i<cnt;i++)); do
-    INDIVIDUALHTAR[i]="htar/${INDIVIDUALHTAR[i]}"
-  done
+  HSI=( "$@" )
+  HTAR=( "${@/#/htar/}" )
 fi
 
 echo "Running  tests:"
-while [ $COUNTER -lt 6 ] ; do
-  if [ $COUNTER -eq 5 ] ; then
-    while [ $INTCOUNTER -lt 3 ] ; do
-      clean
-      echo "HSI ${INDIVIDUALHSI[$COUNTER]} on Titan Login Node"
-      I=$(calcHSI $COUNTER)
-      echo "Test $INTCOUNTER for ${INDIVIDUALHSI[$COUNTER]} With HSI" >> $TIMEFILE
-      echo $I >> $TIMEFILE
-      hsi rm ${INDIVIDUALHSI[$COUNTER]} 2> /dev/null
-      AVGHSI=$(echo $AVGHSI + $I | bc)
-      clean
-      echo "HTAR ${INDIVIDUALHTAR[$COUNTER]} on Titan Login Node"
-      I=$( htar -cvf file.tar ${INDIVIDUALHTAR[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds \()" )
-      echo "Test $INTCOUNTER for ${INDIVIDUALHTAR[$COUNTER]} With HTAR" >> $TIMEFILE
-      echo $I >> $TIMEFILE
-      AVGHTAR=$(echo $AVGHTAR + $I | bc)
-      #Average the time for this cycle
-      INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
-    done
-  else
+while [ $COUNTER -lt ${#HSI[@]} ] ; do
     while [ $INTCOUNTER -lt 10 ] ; do
-      clean
-      echo "HSI ${INDIVIDUALHSI[$COUNTER]} on Titan Login Node"
+      echo "HSI ${HSI[$COUNTER]} on Titan Login Node"
       I=$(calcHSI $COUNTER)
-      echo "Test $INTCOUNTER for ${INDIVIDUALHSI[$COUNTER]} With HSI" >> $TIMEFILE
+      echo "Test $INTCOUNTER for ${HSI[$COUNTER]} With HSI" >> $TIMEFILE
       echo $I >> $TIMEFILE
-      hsi rm ${INDIVIDUALHSI[$COUNTER]} 2> /dev/null
+      hsi rm ${HSI[$COUNTER]} 2> /dev/null
       AVGHSI=$(echo $AVGHSI + $I | bc)
-      clean
-      echo "HTAR ${INDIVIDUALHTAR[$COUNTER]} on Titan Login Node"
-      I=$( htar -cvf file.tar ${INDIVIDUALHTAR[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds \()" )
-      echo "Test $INTCOUNTER for ${INDIVIDUALHTAR[$COUNTER]} With HTAR" >> $TIMEFILE
+      echo "HTAR ${HTAR[$COUNTER]} on Titan Login Node"
+      I=$( htar -cvf file.tar ${HTAR[$COUNTER]} | grep -Po "(?<=time: ).*(?= seconds \()" )
+      echo "Test $INTCOUNTER for ${HTAR[$COUNTER]} With HTAR" >> $TIMEFILE
       echo $I >> $TIMEFILE
       AVGHTAR=$(echo $AVGHTAR + $I | bc)
       #Average the time for this cycle
       INTCOUNTER=$(echo $INTCOUNTER + 1 | bc)
     done
-  fi
-  
   AVGHSI=$(echo $AVGHSI / 10 | bc -l)
   AVGHTAR=$(echo $AVGHTAR / 10 |bc -l)
-  echo "Average HSI time for ${INDIVIDUALHSI[$COUNTER]} after 10 iterations:" >> $TIMEFILE
+  echo "Average HSI time for ${HSI[$COUNTER]} after 10 iterations:" >> $TIMEFILE
   echo $AVGHSI >> $TIMEFILE
-  echo "Average HSI for ${INDIVIDUALHSI[$COUNTER]}"
+  echo "Average HSI for ${HSI[$COUNTER]}"
   echo $AVGHSI
-  echo "Average HTAR time for ${INDIVIDUALHTAR[$COUNTER]} after 10 iterations:" >> $TIMEFILE
+  echo "Average HTAR time for ${HTAR[$COUNTER]} after 10 iterations:" >> $TIMEFILE
   echo $AVGHTAR >> $TIMEFILE
-  echo "Average HTAR for ${INDIVIDUALHTAR[$COUNTER]}"
+  echo "Average HTAR for ${HTAR[$COUNTER]}"
   echo $AVGHTAR
   AVGHSI=0
   AVGHTAR=0
